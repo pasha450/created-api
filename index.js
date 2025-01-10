@@ -4,8 +4,9 @@ const dotenv = require('dotenv');
 const router = require('./routes');
 const bodyParser = require("body-parser");
 const PORT = 5000; 
+const cors = require('cors')
 
-
+app.use(cors())
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());     // middleware to parse json 
 app.use(express.static('./assets')) // static path for file images 

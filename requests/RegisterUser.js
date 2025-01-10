@@ -2,7 +2,7 @@ const {body , validationResult} = require('express-validator')
 const User = require('../models/User');
 
 const validateUser =() =>[
-    body("name")
+    body("firstname")
     .trim()
     .not()
     .isEmpty()
@@ -12,6 +12,16 @@ const validateUser =() =>[
     .withMessage("Name should be in a validd format")
     .bail()  ,  // stop further validation if the is invalid format 
 
+    // for lastname
+    body("lastname")
+    .trim()
+    .not()
+    .isEmpty()
+    .withMessage("LastName must be required")
+    .bail()
+    .isString()
+    .withMessage("Name should be in a valid format")
+    .bail()  ,
     
 // ** for Email **//
    body("email")
