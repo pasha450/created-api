@@ -20,7 +20,7 @@ async function register(req, res ) {
         const{name , email , password} =  req.body;
         const user = await User.findOne({email :email});
         if(user){
-            return res.status(401).json({status: false , error:"Email already in use!"});
+            return res.status(409).json({status: false , error:"Email already in use!"});
         }
         await User.create(req.body);
         res.status(200).json({status: true , message:"User Created Successfully"})
@@ -45,9 +45,8 @@ async function login(req,res){
         }
         const token = jwt.sign({ userId: user._id }, process.env.SESSION_SECRET, {
             expiresIn: '2h',
-        
         });
-        res.status(200).json({status: true, user});
+        res.status(200).json({status: true, user ,message:"User Login Successfully"});
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: 'Login failed' });
