@@ -96,9 +96,8 @@ async function resetPassword(req,res){
 // Api for Edit profile 
 async function  editProfile(req,res){
   try{
-      const {userId ,phone ,address ,gender } = req.body 
+      const {userId} = req.body 
       const baseUrl = `${req.protocol}://${req.get('host')}`;
-      console.log(req.get('host'));
       const profileImageUrl = `${baseUrl}/ProfileImage`;
       const userData = await User.findById(userId);
       console.log(userData ,"userDataaaa");
@@ -106,15 +105,11 @@ async function  editProfile(req,res){
        res.status(404).json({status : false , error: 'user not found'})
     }
     // Update user fields only if the new value is provided 
-    if(phone)userData.phone = phone ;
-    if(address)userData.address = address; 
-    if(gender)userData.gender = gender; 
-
-    if(userData.profile_image!=''){
+    if(userData!=null && userData.profile_image!=''){
         userData.profile_image = `${profileImageUrl}/${userData.profile_image}`
+        
+
     }
-  //********** saved userData ************
-    await userData.save();
     res.status(200).json({status:true ,userData})
   }catch(error){
    console.log(error)
