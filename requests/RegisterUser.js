@@ -9,7 +9,7 @@ const validateUser =() =>[
     .withMessage("Name must be required")
     .bail()
     .isString()
-    .withMessage("Name should be in a validd format")
+    .withMessage("Name should be in a valid format")
     .bail()  ,  // stop further validation if the is invalid format 
 
     // for lastname

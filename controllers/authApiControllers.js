@@ -46,7 +46,8 @@ async function login(req,res){
         const token = jwt.sign({ userId: user._id }, process.env.SESSION_SECRET, {
             expiresIn: '2h',
         });
-        res.status(200).json({status: true, user ,message:"User Login Successfully"});
+        user.token = token;  
+        res.status(200).json({status: true, user,token  ,message:"User Login Successfully"});
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: 'Login failed' });
@@ -99,6 +100,7 @@ async function  editProfile(req,res){
       const {userId} = req.body 
       const baseUrl = `${req.protocol}://${req.get('host')}`;
       const profileImageUrl = `${baseUrl}/ProfileImage`;
+
       const userData = await User.findById(userId);
       console.log(userData ,"userDataaaa");
     if(!userData){
@@ -107,8 +109,6 @@ async function  editProfile(req,res){
     // Update user fields only if the new value is provided 
     if(userData!=null && userData.profile_image!=''){
         userData.profile_image = `${profileImageUrl}/${userData.profile_image}`
-        
-
     }
     res.status(200).json({status:true ,userData})
   }catch(error){
@@ -136,7 +136,7 @@ async function updateProfile(req, res) {
                     if (exists) {
                         fs.unlinkSync(filePath);
                     } else {
-                        console.log('File not found, so not deleting');
+                        console.log('File not found, so not deleting');  
                     }
                 });
             }

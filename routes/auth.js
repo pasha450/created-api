@@ -48,7 +48,7 @@ router.post('/register',registerUserRequest,authApiController.register);
 router.post('/login',loginUserRequest, authApiController.login);
 router.post('/forget-password',forgetPasswordRequest,authApiController.forgetPassword);
 router.post('/reset-password',authApiController.resetPassword);
-router.post('/edit-profile' ,uploadProfileImgImage.single('profile_image'),authApiController.editProfile);
-router.post('/update-profile',uploadProfileImgImage.single('profile_image'),authApiController.updateProfile)
+router.post('/edit-profile', middleware.verifyToken,uploadProfileImgImage.single('profile_image'),authApiController.editProfile);
+router.post('/update-profile', middleware.verifyToken,uploadProfileImgImage.single('profile_image'),authApiController.updateProfile)
 
 module.exports = router;
