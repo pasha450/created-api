@@ -47,7 +47,7 @@ async function login(req,res){
             expiresIn: '2h',
         });
         user.token = token;  
-        res.status(200).json({status: true, user,token  ,message:"User Login Successfully"});
+        res.status(200).json({status: true, user  ,message:"User Login Successfully"});
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: 'Login failed' });
@@ -98,6 +98,7 @@ async function resetPassword(req,res){
 async function  editProfile(req,res){
   try{
       const {userId} = req.body 
+
       const baseUrl = `${req.protocol}://${req.get('host')}`;
       const profileImageUrl = `${baseUrl}/ProfileImage`;
 
