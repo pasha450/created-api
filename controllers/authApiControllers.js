@@ -97,24 +97,24 @@ async function resetPassword(req,res){
 // Api for Edit profile 
 async function  editProfile(req,res){
   try{
-      const {userId} = req.body 
+      const {id} = req.body 
 
       const baseUrl = `${req.protocol}://${req.get('host')}`;
       const profileImageUrl = `${baseUrl}/ProfileImage`;
 
-      const userData = await User.findById(userId);
+      const userData = await User.findById(id);
       console.log(userData ,"userDataaaa");
     if(!userData){
-       res.status(404).json({status : false , error: 'user not found'})
+     return res.status(404).json({status : false , error: 'user not found'})
     }
     // Update user fields only if the new value is provided 
     if(userData!=null && userData.profile_image!=''){
         userData.profile_image = `${profileImageUrl}/${userData.profile_image}`
     }
-    res.status(200).json({status:true ,userData})
+   return res.status(200).json({status:true ,userData})
   }catch(error){
    console.log(error)
-   res.status(500).json({ status : false , error: 'Profile update Failed'})
+  res.status(500).json({ status : false , error: 'Profile update Failed'})
   } 
 }
 
@@ -123,50 +123,29 @@ async function  editProfile(req,res){
 
 async function updateProfile(req, res) {
     try {
-        const { userId, password, phone, address, gender } = req.body;
+        const { id, firstname, lastname, email, address } = req.body;
+        if (!id) {
+            return res.status(400).json({ status: false, message: 'User ID is required' });
+        }
         const updateData = { ...req.body };
-        let baseUrl = process.env.App_URL;
+        const baseUrl = process.env.App_URL;
         // Handle file upload
-        if (req.file) { // Check if req.file exists
-            const profileImage = updateData.profile_image || ''; // Ensure profile_image has a default value
-            const filePath = `./assets/profileImage/${profileImage}`;
-            
-            // Delete old image if it exists
-            if (profileImage) {
-                fs.exists(filePath, function (exists) {
-                    if (exists) {
-                        fs.unlinkSync(filePath);
-                    } else {
-                        console.log('File not found, so not deleting');  
-                    }
-                });
-            }
-
-            // Set new profile image
-            updateData.profile_image = req.file.filename;
-        } else {
-            delete updateData.profile_image; // Remove invalid data if no file is uploaded
-        }
-        // Handle password encryption
-        if (password) {
-            updateData.password = await global.securePassword(password);
-        } else {
-            delete updateData.password;
-        }
-        // Add phone, address, and other fields
-        if (phone) updateData.phone = phone;
-        if (address) updateData.address = address;
-        if (gender) updateData.gender = gender;
-
-        // Update the user data
-        const userData = await User.findByIdAndUpdate(userId, updateData, { new: true });
-
-        // Set profile image URL
         if (req.file) {
-            userData.profile_image = `${baseUrl}/ProfileImage/${req.file.filename}`;
+            const filePath = `./assets/profileImage/${req.file.filename}`; 
+            updateData.profile_image = `${baseUrl}/ProfileImage/${req.file.filename}`;
+        } else {
+            delete updateData.profile_image;
         }
-
-        res.status(200).json({ status: true, userData });
+        if (firstname) updateData.firstname = firstname;
+        if (lastname) updateData.lastname = lastname;
+        if (email) updateData.email = email;
+        if (address) updateData.address = address;
+        // Update the user data in the database
+        const userData = await User.findByIdAndUpdate(id, updateData, { new: true });
+        if (!userData) {
+            return res.status(404).json({ status: false, message: 'User not found' });
+        }
+        res.status(200).json({ status: true, message: 'Profile updated successfully', userData });
     } catch (error) {
         console.error("Error in updateProfile:", error);
         res.status(500).json({ status: false, message: 'Internal Server Error' });

@@ -22,7 +22,7 @@ const storageProfileImg = multer.diskStorage({
     cb(null, dir); 
   },
   filename: (req, file, cb) => {
-    // console.log(file,'fileeee') 
+    console.log(file,'fileeee') 
     const fileName = file.originalname.toLowerCase().split( ' ' ).join('-');
     const newFileName = Date.now() +'-'+fileName;
     cb(null, newFileName); 
