@@ -3,15 +3,15 @@ const axios = require('axios');
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID || "Ov23li27KMnGLMGrcgPN";
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET || "b861b7257359655eda2df4f5b96f6aa61cae4bbb";
 const GITHUB_CALLBACK_URL = process.env.GITHUB_CALLBACK_URL || "http://localhost:3000/auth/github/callback";
-
 // Redirect to GitHub OAuth URL
 const githubLogin = (req, res) => {
   const redirectUri = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${GITHUB_CALLBACK_URL}`;
   res.redirect(redirectUri);
-  console.log(redirectUri,'redirectUri 143341')
+  console.log(redirectUri ,'redirectUri')
 };
-
+console.log(redirectUri , "redirectUri")
 const githubCallback = async (req, res) => {
+    
   const { code } = req.query;
   if (!code) {
     return res.status(400).send('Authorization code not found.');
