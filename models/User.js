@@ -5,8 +5,7 @@ const userSchema = new mongoose.Schema({
   firstname: {
       type: String,
       required: true,
-    },
-    
+    },    
     lastname: {
       type: String,
       required: true,
@@ -17,6 +16,12 @@ const userSchema = new mongoose.Schema({
       required: true,
       caseInsensitive: true 
     },
+
+    socialLogin:{  // new field for social login 
+      type: String,
+      default:null
+    },
+  
     password: {
       type: String,
       default: "",

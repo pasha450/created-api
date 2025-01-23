@@ -8,7 +8,7 @@ const validateUser = () =>[
     .not()
     .isEmpty()
     .withMessage(' Email can not be empty ')
-    .bail()
+    .bail() 
     .isString()
     .withMessage("email should be a valid string ")
     .bail(),

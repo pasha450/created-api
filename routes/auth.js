@@ -3,21 +3,22 @@ const router = express.Router();
 const fs = require('fs');
 const multer = require('multer');
 const middleware = require('../config/middleware');
+const verifyGoogleToken = require('../controllers/googleAuth');
 
 //Controller 
 const authApiController = require('../controllers/authApiControllers');
 
-
 const registerUserRequest = require('../requests/RegisterUser');
 const loginUserRequest = require('../requests/LoginUser');
 const forgetPasswordRequest  = require('../requests/ForgetPassword');
+
 
 //setup multer storage //
 const storageProfileImg = multer.diskStorage({
   destination: (req, file, cb) => {
     const dir  ='./assets/ProfileImage';
     if(!fs.existsSync(dir)){
-       fs.mkdir(dir ,err =>callback(err, dir)) 
+       fs.mkdir(dir ,err =>callback(err, dir))
     }
     cb(null, dir); 
   },
@@ -43,6 +44,7 @@ const storageProfileImg = multer.diskStorage({
     }   
 });
 
+
 // set routes 
 router.post('/register',registerUserRequest,authApiController.register);
 router.post('/login',loginUserRequest, authApiController.login);
@@ -50,5 +52,6 @@ router.post('/forget-password',forgetPasswordRequest,authApiController.forgetPas
 router.post('/reset-password',authApiController.resetPassword);
 router.post('/edit-profile', middleware.verifyToken,uploadProfileImgImage.single('profile_image'),authApiController.editProfile);
 router.post('/update-profile', middleware.verifyToken,uploadProfileImgImage.single('profile_image'),authApiController.updateProfile)
+router.post('/auth/google', verifyGoogleToken);
 
 module.exports = router;

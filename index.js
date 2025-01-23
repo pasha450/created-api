@@ -3,15 +3,18 @@ const app = express();
 const dotenv = require('dotenv');
 const router = require('./routes');
 const bodyParser = require("body-parser");
+
 const PORT = 5000; 
 const cors = require('cors')
 
 app.use(cors())
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());     // middleware to parse json 
-app.use(express.static('./assets')) // static path for file images 
+app.use('/',express.static('./assets')) // static path for file images 
+
 app.use('/', router); 
 
+// Start the server
 app.listen(PORT, () => {   // app.listen is used to start the server
     console.log(`Server is running on ${PORT}`);
 });
