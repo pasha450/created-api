@@ -10,7 +10,6 @@ const User = require("./models/User");
 dotenv.config(); 
 const app = express();
 const PORT = process.env.PORT || 5000;
-
 // Passport GitHub Strategy
 passport.use(new GitHubStrategy({
   clientID: process.env.GITHUB_CLIENT_ID,
@@ -18,19 +17,21 @@ passport.use(new GitHubStrategy({
   callbackURL: process.env.GITHUB_CALLBACK_URL || "http://localhost:5000/auth/github/callback",
 }, async (accessToken, refreshToken, profile, done) => {
   try {
+
     // Check if the user already exists in the DB 
     let user = await User.findOne({ githubId: profile.id });
     if (!user) {
       // If the user doesn't exist, create a new user
-      const fullName = profile._json.name || ""; // Default to an empty string if name is null
+      const fullName = profile._json.name || ""; 
       const [firstname, ...lastnameParts] = fullName.split(' '); 
-      const lastname = lastnameParts.join(' ') || "User"; // Default lastname to "User"  
+      const lastname = lastnameParts.join(' ') || "User";
+    //  console.log(lastname ,"lastname");
       user = new User({
-        firstname: firstname || "GitHub", // Default firstname to "GitHub"
-        lastname: lastname, // Default lastname to "User" if empty
-        email: profile._json.email || `${profile.username}@github.com`, // Fallback for email
+        firstname: firstname || "GitHub", 
+        lastname: lastname, 
+        email: profile._json.email || `${profile.username}@github.com`, 
         githubId: profile.id,
-        avatar: profile._json.avatar_url,
+        avatar: profile._json.avatar_url, 
       });
       await user.save();
     }
@@ -50,7 +51,7 @@ passport.deserializeUser(async (id, done) => {
     const user = await User.findById(id); // Use async/await instead of a callback
     done(null, user); // Pass the user object to Passport
   } catch (err) {
-    done(err); // Pass any errors
+    done(err); 
   }
 });
 
@@ -69,17 +70,20 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+
 // GitHub login route
 app.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
-
 app.get('/auth/github/callback',
   passport.authenticate('github', { failureRedirect: '/' }),
   (req, res) => {
     // On successful login, redirect to the dashboard
-    res.redirect("http://localhost:3000/dashboard");  
+    // res.redirect("http://localhost:3000/dashboard");   
+  
+    const user = req.user; // User is attached to req.user by Passport
+    res.redirect(`http://localhost:3000/dashboard?user=${encodeURIComponent(JSON.stringify(user))}`); 
   }
-);
-
+);  
 // Profile page to show user info
 app.get('/profile', (req, res) => {
   if (!req.user) {
