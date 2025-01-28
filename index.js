@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const passport = require('passport');
 const GitHubStrategy = require('passport-github').Strategy;
 const session = require('express-session'); // Import express-session
+const FacebookStrategy = require('passport-facebook').Strategy; // Facebook Strategy
 const cors = require('cors');
 const router = require('./routes');
 const User = require("./models/User");
@@ -10,17 +11,20 @@ const User = require("./models/User");
 dotenv.config(); 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+
+
 // Passport GitHub Strategy
 passport.use(new GitHubStrategy({
   clientID: process.env.GITHUB_CLIENT_ID,
   clientSecret: process.env.GITHUB_CLIENT_SECRET,
   callbackURL: process.env.GITHUB_CALLBACK_URL || "http://localhost:5000/auth/github/callback",
 }, async (accessToken, refreshToken, profile, done) => {
-  try {
 
+  try {
     // Check if the user already exists in the DB 
     let user = await User.findOne({ githubId: profile.id });
-    if (!user) {
+    if (!user) { 
       // If the user doesn't exist, create a new user
       const fullName = profile._json.name || ""; 
       const [firstname, ...lastnameParts] = fullName.split(' '); 
@@ -33,7 +37,7 @@ passport.use(new GitHubStrategy({
         githubId: profile.id,
         avatar: profile._json.avatar_url, 
       });
-      await user.save();
+      await user.save(); 
     }
     // Pass the user profile to the session
     return done(null, user);
@@ -41,6 +45,38 @@ passport.use(new GitHubStrategy({
     return done(err);
   }
 }));
+
+// Passport Facebook Strategy
+passport.use(
+  new FacebookStrategy(
+    {
+      clientID: process.env.FACEBOOK_APP_ID,
+      clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+      callbackURL: process.env.FACEBOOK_CALLBACK_URL || "http://localhost:5000/auth/facebook/callback",
+      profileFields: ['id', 'emails', 'name', 'picture.type(large)'], // Fields you want from Facebook
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      try {
+        // Check if the user exists in your DB
+        let user = await User.findOne({ facebookId: profile.id });
+        if (!user) {
+          // Create a new user if not found
+          user = new User({
+            firstname: profile.name.givenName || "Facebook",
+            lastname: profile.name.familyName || "User",
+            email: profile.emails?.[0]?.value || `${profile.id}@facebook.com`,
+            facebookId: profile.id,
+            avatar: profile.photos?.[0]?.value,
+          });
+          await user.save();
+        }
+        done(null, user); // Pass the user object to Passport
+      } catch (err) {
+        done(err);
+      }
+    }
+  )
+);
 
 passport.serializeUser((user, done) => {
   done(null, user.id);  // Store user ID in session
@@ -56,7 +92,7 @@ passport.deserializeUser(async (id, done) => {
 });
 
 // Middleware setup
-app.use(cors()); // Allow cross-origin requests
+app.use(cors()); 
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded data
 app.use(express.json()); // Parse JSON data
 app.use(express.static('./assets')); // Serve static files
@@ -84,14 +120,26 @@ app.get('/auth/github/callback',
     res.redirect(`http://localhost:3000/dashboard?user=${encodeURIComponent(JSON.stringify(user))}`); 
   }
 );  
+// Facebook login route
+app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email'] }));
+
+app.get('/auth/facebook/callback',
+  passport.authenticate('facebook', { failureRedirect: '/' }),
+  (req, res) => {
+    // On successful login, redirect to the dashboard
+    const user = req.user; // User is attached to req.user by Passport
+    res.redirect(`http://localhost:3000/dashboard?user=${encodeURIComponent(JSON.stringify(user))}`);
+  }
+);
+
 // Profile page to show user info
 app.get('/profile', (req, res) => {
   if (!req.user) {
     return res.redirect('/'); 
+    
   }
   res.json(req.user); // You can display user data here
 });
-
 app.use('/', router); 
 
 // Start the server

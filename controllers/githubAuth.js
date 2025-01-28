@@ -10,6 +10,7 @@ const githubLogin = (req, res) => {
   const redirectUri = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${GITHUB_CALLBACK_URL}&scope=read:user&prompt=consent`; 
   res.redirect(redirectUri);
 };
+
 const githubCallback = async (req, res) => {
   const { code } = req.query;
   if (!code) {
@@ -22,8 +23,8 @@ const githubCallback = async (req, res) => {
         client_id: GITHUB_CLIENT_ID,
         client_secret: GITHUB_CLIENT_SECRET,
         code,
-        
-      },
+      }, 
+
       {
         headers: { Accept: 'application/json' },
       }
@@ -35,6 +36,7 @@ const githubCallback = async (req, res) => {
     // Fetch user data from GitHub
     const userResponse = await axios.get('https://api.github.com/user', {
       headers: { Authorization: `Bearer ${accessToken}` },
+
     });
     const userData = userResponse.data;
     // Send user data to the frontend

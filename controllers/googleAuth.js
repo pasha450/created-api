@@ -3,11 +3,10 @@ const User = require('../models/User')
 const { OAuth2Client } = require('google-auth-library');
 const jwt = require('jsonwebtoken');
 
-
 // Google Client ID
 const CLIENT_ID = '766512301906-rg9apma611ofu3od48bcghdktfkjreu7.apps.googleusercontent.com';
 const client = new OAuth2Client(CLIENT_ID);
- 
+
 const verifyGoogleToken = async (req, res) => {
   const { token } = req.body;
   console.log(req.body)
@@ -20,9 +19,9 @@ const verifyGoogleToken = async (req, res) => {
       audience: CLIENT_ID,
     });
     const payload = ticket.getPayload();
-    console.log(ticket,'ticket');
-    console.log(payload,'payload');
-    
+    console.log(ticket, 'ticket');
+    console.log(payload, 'payload');
+
     const { email, name, picture } = payload;
     console.log('Google User:', { email, name, picture });
 
@@ -30,20 +29,20 @@ const verifyGoogleToken = async (req, res) => {
     const lastname = rest.join(' ') || 'N/A';   //handle cases with no lastname
     let user = await User.findOne({ email });      // Check if the user exists in the database
     if (!user) {
-        user = new User({email, firstname, lastname, picture});
+      user = new User({ email, firstname, lastname, picture });
       await user.save();
       console.log('New user registered:', user);
     } else {
       if (!user.socialLogin || user.socialLogin !== 'google') {   // add the key for login user indentification 
-        user.socialLogin = 'google';                         
-        await user.save();  
+        user.socialLogin = 'google';
+        await user.save();
       }
       console.log('Existing user found:', user);
-    }  
+    }
     // Generate a JWT for the user *** 
     const tokenPayload = {
-      id: user._id, 
-      email: user.email,    
+      id: user._id,
+      email: user.email,
       firstname: user.firstname,
       lastname: user.lastname,
     };
@@ -55,9 +54,9 @@ const verifyGoogleToken = async (req, res) => {
       user: { id: user._id, email: user.email, firstname: user.firstname, lastname: user.lastname, picture: user.picture },
       token: jwtToken,
     });
-    } catch (error) {
+  } catch (error) {
     console.error('Token verification failed:', error.message);
     res.status(401).json({ message: 'Unauthorized', error: error.message });
-    }
-    };
+  }
+};
 module.exports = verifyGoogleToken;
