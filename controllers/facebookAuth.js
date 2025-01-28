@@ -1,3 +1,4 @@
+// this file handle the authentication process for the facebook 
 const axios = require('axios');
 
 const FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID || "557454496653455";
@@ -59,4 +60,3 @@ module.exports = { facebookLogin, facebookCallback };
 
 
 
-created the api for the facebook login and when user not found in the database then create a new user 

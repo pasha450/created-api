@@ -34,7 +34,9 @@ const userSchema = new mongoose.Schema({
       type: String,
       required: false,
     },
-
+    twitterId: { 
+      type: String 
+    },
     password: {
       type: String,
       default: "",

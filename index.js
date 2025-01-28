@@ -1,6 +1,7 @@
 const express = require('express'); // Import express
 const dotenv = require('dotenv');
 const passport = require('passport');
+const TwitterStrategy = require("passport-twitter").Strategy;
 const GitHubStrategy = require('passport-github').Strategy;
 const session = require('express-session'); // Import express-session
 const FacebookStrategy = require('passport-facebook').Strategy; // Facebook Strategy
@@ -11,7 +12,6 @@ const User = require("./models/User");
 dotenv.config(); 
 const app = express();
 const PORT = process.env.PORT || 5000;
-
 
 
 // Passport GitHub Strategy
@@ -77,6 +77,53 @@ passport.use(
     }
   )
 );
+// Passport twitter Strategy
+
+// passport.use(
+//   new TwitterStrategy(
+//     {
+//       consumerKey: process.env.TWITTER_CONSUMER_KEY,
+//       consumerSecret: process.env.TWITTER_CONSUMER_SECRET, 
+//       callbackURL: process.env.TWITTER_CALLBACK_URL || "http://localhost:5000/auth/twitter/callback",
+//     },
+//     function (token, tokenSecret, profile, done) {
+//       return done(null, profile);   // Save or find the user in the databasse
+//     }
+//   )
+// );
+
+passport.use(
+  new TwitterStrategy(
+    {
+      consumerKey: process.env.TWITTER_CONSUMER_KEY,
+      consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
+      callbackURL: process.env.TWITTER_CALLBACK_URL || "http://localhost:5000/auth/twitter/callback",
+    },
+    async (token, tokenSecret, profile, done) => {
+      try {
+        // Check if the user already exists in the database
+        let user = await User.findOne({ twitterId: profile.id });
+        if (!user) {
+          // Create a new user if not found
+          user = new User({
+            twitterId: profile.id,
+            username: profile.username,
+            firstname: profile.displayName.split(" ")[0] || "Twitter",
+            lastname: profile.displayName.split(" ")[1] || "User",
+            email: profile.emails?.[0]?.value || `${profile.id}@twitter.com`, 
+            avatar: profile.photos?.[0]?.value, 
+            socialLogin: "twitter", 
+          });
+          await user.save();
+        }
+        // Pass the user object to Passport
+        done(null, user);
+      } catch (err) {
+        done(err);
+      }
+    }
+  )
+);
 
 passport.serializeUser((user, done) => {
   done(null, user.id);  // Store user ID in session
@@ -113,9 +160,6 @@ app.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] 
 app.get('/auth/github/callback',
   passport.authenticate('github', { failureRedirect: '/' }),
   (req, res) => {
-    // On successful login, redirect to the dashboard
-    // res.redirect("http://localhost:3000/dashboard");   
-  
     const user = req.user; // User is attached to req.user by Passport
     res.redirect(`http://localhost:3000/dashboard?user=${encodeURIComponent(JSON.stringify(user))}`); 
   }
@@ -126,8 +170,18 @@ app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email'] }
 app.get('/auth/facebook/callback',
   passport.authenticate('facebook', { failureRedirect: '/' }),
   (req, res) => {
-    // On successful login, redirect to the dashboard
     const user = req.user; // User is attached to req.user by Passport
+    res.redirect(`http://localhost:3000/dashboard?user=${encodeURIComponent(JSON.stringify(user))}`);
+  }
+);
+
+// Twitter login route
+app.get("/auth/twitter", passport.authenticate("twitter", { scope: ['email'] }));
+app.get(
+  "/auth/twitter/callback",
+  passport.authenticate("twitter", { failureRedirect: "/" }),
+  (req, res) => {
+    const user = req.user;
     res.redirect(`http://localhost:3000/dashboard?user=${encodeURIComponent(JSON.stringify(user))}`);
   }
 );
@@ -136,7 +190,6 @@ app.get('/auth/facebook/callback',
 app.get('/profile', (req, res) => {
   if (!req.user) {
     return res.redirect('/'); 
-    
   }
   res.json(req.user); // You can display user data here
 });
