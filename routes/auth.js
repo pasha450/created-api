@@ -11,7 +11,7 @@ const authApiController = require('../controllers/authApiControllers');
 const registerUserRequest = require('../requests/RegisterUser');
 const loginUserRequest = require('../requests/LoginUser');
 const forgetPasswordRequest  = require('../requests/ForgetPassword');
-
+const familyMemberRequest = require('../requests/FamilyMember');
 
 //setup multer storage //
 const storageProfileImg = multer.diskStorage({
@@ -53,5 +53,5 @@ router.post('/reset-password',authApiController.resetPassword);
 router.post('/edit-profile', middleware.verifyToken,uploadProfileImgImage.single('profile_image'),authApiController.editProfile);
 router.post('/update-profile', middleware.verifyToken,uploadProfileImgImage.single('profile_image'),authApiController.updateProfile)
 router.post('/auth/google', verifyGoogleToken);
-
+router.post('/register-family',familyMemberRequest,authApiController.registerFamily)
 module.exports = router;

@@ -13,6 +13,8 @@ module.exports ={
     resetPassword,
     editProfile ,
     updateProfile,
+    registerFamily,
+   
 }
 
 async function register(req, res ) {
@@ -152,5 +154,28 @@ async function updateProfile(req, res) {
     }
 }
 
+// for added familyMembers 
+async function registerFamily(req, res) {
+    const { familyMembers } = req.body;
+    // Validate if familyMembers is provided and is a non-empty array
+    if (!Array.isArray(familyMembers) || familyMembers.length === 0) {
+        return res.status(400).json({ status: false, error: "No family members provided" }); 
+    }
+    try {
+        // Check for duplicate emails in the database
+        const emails = familyMembers.map(member => member.email);
+        const existingMembers = await User.find({ email: { $in: emails } });
+        if (existingMembers.length > 0) {
+            const existingEmails = existingMembers.map(member => member.email);
+            return res.status(409).json({ status: false, error: "Duplicate emails found", duplicates: existingEmails});
+        }
+    // Insert all family members into the database
+        const createdMembers = await User.insertMany(familyMembers);
+        return res.status(200).json({ status: true,  message: "Family members registered successfully", data: createdMembers});
+    } catch (error) {
+        console.error("Registration Error:", error);
+        return res.status(500).json({status: false, message: "Internal Server Error"});
+    }
+}
 
 
