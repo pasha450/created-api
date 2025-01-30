@@ -11,12 +11,19 @@ const userSchema = new mongoose.Schema({
     required: [true, "Path `lastname` is required."],
   },
   email: {
-    type: String,
-      required: [true, "Path `email` is required."],
-      required: true,
-      caseInsensitive: true 
+     type: String,
+      required: true, 
+      unique: true 
     },
-
+  occupation: {
+    type: String
+   },  
+   age: { 
+    type: Number 
+   },
+   contactNo: { 
+    type: String 
+  },
     socialLogin:{  // new field for social login 
       type: String,
       default:null
