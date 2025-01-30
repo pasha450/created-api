@@ -62,9 +62,8 @@ const twitterCallback = async (req, res) => {
     const userId = data.get("user_id");
     const screenName = data.get("screen_name");
     if (!accessToken || !userId) {
-      return res.status(401).send("Failed to retrieve access token.");
+      return res.status(401).send("Failed to retrieve access token."); 
     }
-     
     // Fetch user profile data (optional, using Twitter API v2 for extended data)
     const userResponse = await axios.get(`https://api.twitter.com/2/users/${userId}`, {
       headers: {
